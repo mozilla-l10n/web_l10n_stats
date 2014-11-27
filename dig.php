@@ -42,16 +42,16 @@ if (! file_exists($data_path)) {
 
 // Define our date interval
 
-// $begin    = new DateTime('2012-03-05');
-$begin     = new DateTime('2014-11-20');
+$begin    = new DateTime('2012-03-06');
+// $begin     = new DateTime('2014-11-20');
 $end       = new DateTime('2014-11-26');
-$interval  = DateInterval::createFromDateString('1 day');
+$interval  = DateInterval::createFromDateString('1 week');
 $period    = new DatePeriod($begin, $interval, $end);
 
 $data = json_decode(file_get_contents($app .'/logs/data.json'), true);
 
 chdir($git);
-print "Launching PHP dev server  in the background inside the Langchecker instance.\n";
+print "Launching PHP dev server in the background inside the Langchecker instance.\n";
 exec('php -S localhost:8082 > /dev/null 2>&1 &');
 
 foreach ($period as $date) {
@@ -86,9 +86,12 @@ foreach ($period as $date) {
     // Analyse data
     chdir($app);
     $json_day = json_decode(file_get_contents('http://localhost:8082/?action=count&json'), true);
-    ksort($json_day);
+    if (is_array($json_day)) {
+        ksort($json_day);
+    }
     $data[$day] = $json_day;
-    file_put_contents( $data_path, json_encode($data));
+    ksort($data);
+    file_put_contents($data_path, json_encode($data));
 }
 
 // Kill the php process we launched in the background
