@@ -72,8 +72,8 @@ if (! file_exists($data_path)) {
 
 // Define our date interval
 
-// 2013-07-09 is when I put Langchecker on github
-$begin    = new DateTime('2013-07-09');
+// 2013-10-12 is when I added the json API to the countstring view in Langchecker
+$begin    = new DateTime('2013-12-10');
 $end       = new DateTime('2014-11-26');
 $interval  = DateInterval::createFromDateString('1 week');
 $period    = new DatePeriod($begin, $interval, $end);
