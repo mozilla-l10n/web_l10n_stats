@@ -6,30 +6,30 @@ mb_internal_encoding('UTF-8');
 // Repositories to loop for date in
 $app        = realpath(__DIR__);
 $repos      = $app . '/repos';
-$svn_mozorg = $repos . '/mozillaorg/locales/';
-$svn_misc   = $repos . '/l10n-misc/';
-$git        = $repos . '/langchecker/';
+$svn_mozorg = $repos . '/mozillaorg/locales';
+$svn_misc   = $repos . '/l10n-misc';
+$git        = $repos . '/langchecker';
 $data_path  = $app .'/logs/data.json';
 
 // Create our data structure
 if (! is_dir($svn_mozorg)) {
     chdir($repos);
-    print 'Checking our mozilla.org svn repository';
+    print "Checking our mozilla.org svn repository\n";
     mkdir($repos . '/mozillaorg/');
     exec('svn co https://svn.mozilla.org/projects/mozilla.com/trunk/locales mozillaorg/locales');
 }
 
 if (! is_dir($svn_misc)) {
     chdir($repos);
-    print 'Checking our l10n-misc svn repository';
+    print "Checking our l10n-misc svn repository\n";
     exec('svn co https://svn.mozilla.org/projects/l10n-misc/trunk l10n-misc');
 }
 
 if (! is_dir($git)) {
     chdir($repos);
-    print 'Cloning the Langchecker git repository';
+    print "Cloning the Langchecker git repository\n";
     exec('git clone https://github.com/mozilla-l10n/langchecker');
-    copy($repos . 'settings.inc.php', $git .'config/settings.inc.php');
+    copy($repos . '/settings.inc.php', $git .'/config/settings.inc.php');
 }
 
 if (! is_dir($app . '/logs/')) {
@@ -66,16 +66,16 @@ foreach ($period as $date) {
     chdir($git);
     exec("git checkout `git rev-list -n 1 --before=\"${day}\" master` --quiet");
 
-    if (! is_dir($git . 'vendor') && is_file($git . 'composer.json')) {
+    if (! is_dir($git . '/vendor') && is_file($git . '/composer.json')) {
         print "install composer dependencies";
         exec("composer install > /dev/null 2>&1");
-        $composer_sig = sha1(file_get_contents($git . 'composer.json'));
+        $composer_sig = sha1(file_get_contents($git . '/composer.json'));
     }
 
-    if (isset($composer_sig) && sha1(file_get_contents($git . 'composer.json')) != $composer_sig) {
+    if (isset($composer_sig) && sha1(file_get_contents($git . '/composer.json')) != $composer_sig) {
         print "Updating composer dependencies\n";
         exec("composer update > /dev/null 2>&1");
-        $composer_sig = sha1(file_get_contents($git . 'composer.json'));
+        $composer_sig = sha1(file_get_contents($git . '/composer.json'));
     }
 
     chdir($svn_mozorg);
