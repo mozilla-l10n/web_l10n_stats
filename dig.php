@@ -98,10 +98,15 @@ foreach ($period as $date) {
         $composer_sig = sha1(file_get_contents($git . '/composer.json'));
     }
 
-    if (isset($composer_sig) && sha1(file_get_contents($git . '/composer.json')) != $composer_sig) {
-        print "Updating composer dependencies\n";
-        exec("composer update > /dev/null 2>&1");
-        $composer_sig = sha1(file_get_contents($git . '/composer.json'));
+    if (isset($composer_sig)) {
+        if (sha1(file_get_contents($git . '/composer.json')) != $composer_sig) {
+            print "Updating composer dependencies\n";
+            exec("composer update > /dev/null 2>&1");
+            $composer_sig = sha1(file_get_contents($git . '/composer.json'));
+        } else {
+            print "Updating autoloader\n";
+            exec("composer dump-autoload > /dev/null 2>&1");
+        }
     }
 
     chdir($svn_mozorg);
