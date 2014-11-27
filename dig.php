@@ -129,7 +129,7 @@ foreach ($period as $date) {
     }
     $data[$day] = $json_day;
     ksort($data);
-    file_put_contents($data_path, json_encode($data));
+    file_put_contents($data_path, json_encode($data, JSON_PRETTY_PRINT));
 }
 
 // Kill the php process we launched in the background
