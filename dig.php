@@ -42,8 +42,8 @@ if (! file_exists($data_path)) {
 
 // Define our date interval
 
-$begin    = new DateTime('2012-03-06');
-// $begin     = new DateTime('2014-11-20');
+// 2013-07-09 is when I put Langchecker on github
+$begin    = new DateTime('2013-07-09');
 $end       = new DateTime('2014-11-26');
 $interval  = DateInterval::createFromDateString('1 week');
 $period    = new DatePeriod($begin, $interval, $end);
