@@ -3,13 +3,36 @@
 date_default_timezone_set('Europe/Paris');
 mb_internal_encoding('UTF-8');
 
+// Manage CTRL+C and other script interruptions
+declare(ticks = 1); // how often to check for signals
+// This function will process sent signals
+function sig_handler($signo){
+    global $svn_mozorg;
+    global $svn_misc;
+    if ($signo == SIGTERM || $signo == SIGHUP || $signo == SIGINT){
+        print "Received signal $signo and will exit now!\n";
+        // Cleanup
+        exec('pkill php');
+        chdir($svn_mozorg);
+        exec('svn cleanup');
+        chdir($svn_misc);
+        exec('svn cleanup');
+        exit();
+    }
+}
+
+// These define the signal handling
+pcntl_signal(SIGTERM, "sig_handler");
+pcntl_signal(SIGHUP,  "sig_handler");
+pcntl_signal(SIGINT, "sig_handler");
+
 // Repositories to loop for date in
 $app        = realpath(__DIR__);
 $repos      = $app . '/repos';
 $svn_mozorg = $repos . '/mozillaorg/locales';
 $svn_misc   = $repos . '/l10n-misc';
 $git        = $repos . '/langchecker';
-$data_path  = $app .'/logs/data.json';
+$data_path  = $app . '/logs/data.json';
 
 // Create our data structure
 if (! is_dir($svn_mozorg)) {
@@ -29,6 +52,9 @@ if (! is_dir($git)) {
     chdir($repos);
     print "Cloning the Langchecker git repository\n";
     exec('git clone https://github.com/mozilla-l10n/langchecker');
+}
+
+if (is_dir($git) && ! file_exists($git .'/config/settings.inc.php')) {
     copy($repos . '/settings.inc.php', $git .'/config/settings.inc.php');
 }
 
