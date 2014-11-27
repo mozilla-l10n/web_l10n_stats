@@ -9,14 +9,18 @@ declare(ticks = 1); // how often to check for signals
 function sig_handler($signo){
     global $svn_mozorg;
     global $svn_misc;
-    if ($signo == SIGTERM || $signo == SIGHUP || $signo == SIGINT){
-        print "Received signal $signo and will exit now!\n";
+    if ($signo == SIGTERM || $signo == SIGHUP || $signo == SIGINT) {
+        if ($signo != 15) {
+            print "Received signal $signo and will exit now!\n";
+        } else {
+            print "Operations finished\n";
+        }
         // Cleanup
-        exec('pkill php');
         chdir($svn_mozorg);
         exec('svn cleanup');
         chdir($svn_misc);
         exec('svn cleanup');
+        exec('pkill php');
         exit();
     }
 }
