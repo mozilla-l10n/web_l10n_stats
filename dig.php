@@ -37,7 +37,7 @@ if (! is_dir($app . '/logs/')) {
 }
 
 if (! file_exists($data_path)) {
-    touch($data_path);
+    file_put_contents($data_path, json_encode([]));
 }
 
 // Define our date interval
@@ -67,7 +67,7 @@ foreach ($period as $date) {
     exec("git checkout `git rev-list -n 1 --before=\"${day}\" master` --quiet");
 
     if (! is_dir($git . '/vendor') && is_file($git . '/composer.json')) {
-        print "install composer dependencies";
+        print "install composer dependencies\n";
         exec("composer install > /dev/null 2>&1");
         $composer_sig = sha1(file_get_contents($git . '/composer.json'));
     }
