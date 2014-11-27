@@ -56,7 +56,7 @@ exec('php -S localhost:8082 > /dev/null 2>&1 &');
 
 foreach ($period as $date) {
     $day = $date->format('Y-m-d');
-    if (isset($data[$day])) {
+    if (array_key_exists($day, $data)) {
         continue;
     }
 
