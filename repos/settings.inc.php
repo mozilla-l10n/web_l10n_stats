@@ -17,5 +17,9 @@ $repo6  = ''; // let's ignore this one, marginal
 $locamotion_repo  = ''; // no need for stats
 
 include __DIR__ . '/locales.inc.php';
-$mozilla = array_diff($mozillaorg, ['en-GB', 'es']);
+
+if (isset($mozillaorg)) {
+    $mozilla = array_diff($mozillaorg, ['en-GB', 'es']);
+}
+
 $mozillaorg = array_diff($mozilla, ['en-GB', 'es', 'lg', 'nn-NO', 'sw']);

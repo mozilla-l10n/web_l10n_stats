@@ -89,6 +89,9 @@ foreach ($period as $date) {
     if (is_array($json_day)) {
         ksort($json_day);
     }
+    if (empty($json_day)) {
+        print "Empty json source\n";
+    }
     $data[$day] = $json_day;
     ksort($data);
     file_put_contents($data_path, json_encode($data));
