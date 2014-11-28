@@ -69,6 +69,12 @@ if (! is_dir($git)) {
     exec('git pull origin master');
 }
 
+
+if (! is_file($git . '/composer.phar')) {
+    print "Installing composer.\n";
+    exec("curl -sS https://getcomposer.org/installer | php");
+}
+
 if (is_dir($git) && ! file_exists($git .'/config/settings.inc.php')) {
     copy($repos . '/settings.inc.php', $git .'/config/settings.inc.php');
 }
@@ -107,19 +113,19 @@ foreach ($period as $date) {
     exec("git checkout `git rev-list -n 1 --before=\"${day}\" master` --quiet");
 
     if (! is_dir($git . '/vendor') && is_file($git . '/composer.json')) {
-        print "install composer dependencies\n";
-        exec("composer install > /dev/null 2>&1");
+        print "Installing composer dependencies.\n";
+        exec("php composer.phar install > /dev/null 2>&1");
         $composer_sig = sha1(file_get_contents($git . '/composer.json'));
     }
 
     if (isset($composer_sig)) {
         if (sha1(file_get_contents($git . '/composer.json')) != $composer_sig) {
-            print "Updating composer dependencies\n";
-            exec("composer update > /dev/null 2>&1");
+            print "Updating composer dependencies.\n";
+            exec("php composer.phar > /dev/null 2>&1");
             $composer_sig = sha1(file_get_contents($git . '/composer.json'));
         } else {
-            print "Updating autoloader\n";
-            exec("composer dump-autoload > /dev/null 2>&1");
+            print "Updating autoloader.\n";
+            exec("php composer.phar dump-autoload > /dev/null 2>&1");
         }
     }
 
