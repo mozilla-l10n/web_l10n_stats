@@ -39,23 +39,34 @@ $git        = $repos . '/langchecker';
 $data_path  = $app . '/logs/data.json';
 
 // Create our data structure
+$update_repos = false;
+
 if (! is_dir($svn_mozorg)) {
     chdir($repos);
     print "Checking our mozilla.org svn repository\n";
     mkdir($repos . '/mozillaorg/');
     exec('svn co https://svn.mozilla.org/projects/mozilla.com/trunk/locales mozillaorg/locales');
+} elseif($update_repos) {
+    chdir($svn_mozorg);
+    exec('svn up');
 }
 
 if (! is_dir($svn_misc)) {
     chdir($repos);
     print "Checking our l10n-misc svn repository\n";
     exec('svn co https://svn.mozilla.org/projects/l10n-misc/trunk l10n-misc');
+} elseif($update_repos) {
+    chdir($svn_misc);
+    exec('svn up');
 }
 
 if (! is_dir($git)) {
     chdir($repos);
     print "Cloning the Langchecker git repository\n";
     exec('git clone https://github.com/mozilla-l10n/langchecker');
+} elseif($update_repos) {
+    chdir($git);
+    exec('git pull origin master');
 }
 
 if (is_dir($git) && ! file_exists($git .'/config/settings.inc.php')) {
@@ -73,11 +84,10 @@ if (! file_exists($data_path)) {
 // Define our date interval
 
 // 2013-10-12 is when I added the json API to the countstring view in Langchecker
-$begin    = new DateTime('2013-12-10');
-$end       = new DateTime('2014-11-26');
-$interval  = DateInterval::createFromDateString('1 week');
+$begin    = new DateTime('2014-11-02');
+$end       = new DateTime('2014-11-28');
+$interval  = DateInterval::createFromDateString('1 day');
 $period    = new DatePeriod($begin, $interval, $end);
-
 $data = json_decode(file_get_contents($app .'/logs/data.json'), true);
 
 chdir($git);
@@ -130,6 +140,53 @@ foreach ($period as $date) {
     $data[$day] = $json_day;
     ksort($data);
     file_put_contents($data_path, json_encode($data, JSON_PRETTY_PRINT));
+}
+
+$data = json_decode(file_get_contents($app .'/logs/data.json'), true);
+
+// get locales list, this can vary when we add or drop a locale
+$locales = [];
+foreach($data as $date => $serie) {
+    $locales = array_merge($locales, array_keys($serie));
+}
+$locales = array_unique($locales);
+sort($locales);
+
+$all = 'date,' . implode(',', $locales) . "\n";
+
+foreach($data as $date => $serie) {
+    $loop_time = new DateTime($date);
+    if ($loop_time < $begin || $loop_time > $end) {
+        continue;
+    }
+    $all .= $date . ',';
+    foreach($locales as $this_locale) {
+        if (array_key_exists($this_locale, $serie)) {
+            $all .= $serie[$this_locale];
+        } else {
+            $all .= '0';
+        }
+        $all .= ($this_locale === end($locales)) ? "\n" : ',';
+    }
+}
+
+file_put_contents($app .'/logs/data.csv', $all);
+
+foreach($locales as $this_locale) {
+    $csv = 'date,' . $this_locale . "\n";
+    foreach($data as $date => $serie) {
+        $loop_time = new DateTime($date);
+        if ($loop_time < $begin || $loop_time > $end) {
+            continue;
+        }
+
+        if (array_key_exists($this_locale, $serie)) {
+            $csv .= $date . ',' . $serie[$this_locale] . "\n";
+        } else {
+            $all .= $date . ",0\n";
+        }
+    }
+    file_put_contents($app .'/logs/' . $this_locale . '.csv', $csv);
 }
 
 // Kill the php process we launched in the background
