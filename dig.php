@@ -1,5 +1,9 @@
 #!/usr/bin/env php
 <?php
+if (php_sapi_name() != 'cli') {
+    die('This command can only be used in CLI mode.');
+}
+
 date_default_timezone_set('Europe/Paris');
 mb_internal_encoding('UTF-8');
 
@@ -153,7 +157,9 @@ $data = json_decode(file_get_contents($app .'/logs/data.json'), true);
 // get locales list, this can vary when we add or drop a locale
 $locales = [];
 foreach($data as $date => $serie) {
-    $locales = array_merge($locales, array_keys($serie));
+    if (is_array($serie)) {
+        $locales = array_merge($locales, array_keys($serie));
+    }
 }
 $locales = array_unique($locales);
 sort($locales);
