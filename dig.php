@@ -92,12 +92,16 @@ if (! file_exists($data_path)) {
 }
 
 // Define our date interval
-
 // 2013-10-12 is when I added the json API to the countstring view in Langchecker
-$begin    = new DateTime('2014-11-02');
-$end       = new DateTime('2014-11-28');
-$interval  = DateInterval::createFromDateString('1 day');
-$period    = new DatePeriod($begin, $interval, $end);
+$begin = new DateTime('2014-11-02');
+
+// We define the end date as being yesterday because we don't want to process partial days
+$end = new DateTime();
+$end->add(DateInterval::createFromDateString('yesterday'));
+
+$interval = DateInterval::createFromDateString('1 day');
+$period = new DatePeriod($begin, $interval, $end);
+
 $data = json_decode(file_get_contents($app .'/logs/data.json'), true);
 
 chdir($git);
