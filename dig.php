@@ -173,6 +173,9 @@ foreach($data as $date => $serie) {
     }
     $all .= $date . ',';
     foreach($locales as $this_locale) {
+        if (! is_array($serie)) {
+            continue;
+        }
         if (array_key_exists($this_locale, $serie)) {
             $all .= $serie[$this_locale];
         } else {
@@ -187,6 +190,10 @@ file_put_contents($app .'/logs/data.csv', $all);
 foreach($locales as $this_locale) {
     $csv = 'date,' . $this_locale . "\n";
     foreach($data as $date => $serie) {
+        if (! is_array($serie)) {
+            continue;
+        }
+
         $loop_time = new DateTime($date);
         if ($loop_time < $begin || $loop_time > $end) {
             continue;
