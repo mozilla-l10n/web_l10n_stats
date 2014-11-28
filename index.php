@@ -1,5 +1,6 @@
 <?php
 $locale = isset($_GET['locale'])? $_GET['locale'] : 'data';
+$locale = htmlspecialchars(strip_tags($locale));
 ?>
 <!doctype html>
 <html>
@@ -8,7 +9,7 @@ $locale = isset($_GET['locale'])? $_GET['locale'] : 'data';
 <script src="dygraph-combined.js"></script>
 </head>
 <body>
-    <h3><?=$locale;?></h3>
+    <h3>State of Web parts for: <?=$locale;?></h3>
     <div id="graphdiv"
     style="width:1400px; height:700px;"></div>
     <div id="status" style="width:100px; font-size:0.8em; padding-top:5px; position:absolute; top:0; right:0"></div>
