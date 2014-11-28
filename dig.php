@@ -74,7 +74,7 @@ if (! is_dir($git)) {
 }
 
 
-if (! is_file($git . '/composer.phar')) {
+if (! is_file($app . '/composer.phar')) {
     print "Installing composer.\n";
     exec("curl -sS https://getcomposer.org/installer | php");
 }
