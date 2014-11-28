@@ -114,18 +114,18 @@ foreach ($period as $date) {
 
     if (! is_dir($git . '/vendor') && is_file($git . '/composer.json')) {
         print "Installing composer dependencies.\n";
-        exec("php composer.phar install > /dev/null 2>&1");
+        exec("php $app/composer.phar install > /dev/null 2>&1");
         $composer_sig = sha1(file_get_contents($git . '/composer.json'));
     }
 
     if (isset($composer_sig)) {
         if (sha1(file_get_contents($git . '/composer.json')) != $composer_sig) {
             print "Updating composer dependencies.\n";
-            exec("php composer.phar > /dev/null 2>&1");
+            exec("php $app/composer.phar > /dev/null 2>&1");
             $composer_sig = sha1(file_get_contents($git . '/composer.json'));
         } else {
             print "Updating autoloader.\n";
-            exec("php composer.phar dump-autoload > /dev/null 2>&1");
+            exec("php $app/composer.phar dump-autoload > /dev/null 2>&1");
         }
     }
 
