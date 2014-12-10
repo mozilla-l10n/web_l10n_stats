@@ -8,9 +8,10 @@ date_default_timezone_set('Europe/Paris');
 mb_internal_encoding('UTF-8');
 
 // Manage CTRL+C and other script interruptions
-declare(ticks = 1); // how often to check for signals
+declare (ticks = 1); // how often to check for signals
 // This function will process sent signals
-function sig_handler($signo){
+function sig_handler($signo)
+{
     global $svn_mozorg;
     global $svn_misc;
     if ($signo == SIGTERM || $signo == SIGHUP || $signo == SIGINT) {
@@ -50,7 +51,7 @@ if (! is_dir($svn_mozorg)) {
     print "Checking our mozilla.org svn repository\n";
     mkdir($repos . '/mozillaorg/');
     exec('svn co https://svn.mozilla.org/projects/mozilla.com/trunk/locales mozillaorg/locales');
-} elseif($update_repos) {
+} elseif ($update_repos) {
     chdir($svn_mozorg);
     exec('svn up');
 }
@@ -59,7 +60,7 @@ if (! is_dir($svn_misc)) {
     chdir($repos);
     print "Checking our l10n-misc svn repository\n";
     exec('svn co https://svn.mozilla.org/projects/l10n-misc/trunk l10n-misc');
-} elseif($update_repos) {
+} elseif ($update_repos) {
     chdir($svn_misc);
     exec('svn up');
 }
@@ -68,11 +69,10 @@ if (! is_dir($git)) {
     chdir($repos);
     print "Cloning the Langchecker git repository\n";
     exec('git clone https://github.com/mozilla-l10n/langchecker');
-} elseif($update_repos) {
+} elseif ($update_repos) {
     chdir($git);
     exec('git pull origin master');
 }
-
 
 if (! is_file($app . '/composer.phar')) {
     print "Installing composer.\n";
@@ -93,6 +93,7 @@ if (! file_exists($data_path)) {
 
 // Define our date interval
 // 2013-10-12 is when I added the json API to the countstring view in Langchecker
+// 2014-11-02 is when all web parts were included in the json, not just mozilla.org
 $begin = new DateTime('2014-11-02');
 
 // We define the end date as being yesterday because we don't want to process partial days
@@ -145,12 +146,15 @@ foreach ($period as $date) {
     // Analyse data
     chdir($app);
     $json_day = json_decode(file_get_contents('http://localhost:8082/?action=count&json'), true);
+
     if (is_array($json_day)) {
         ksort($json_day);
     }
+
     if (empty($json_day)) {
         print "Empty json source\n";
     }
+
     $data[$day] = $json_day;
     ksort($data);
     file_put_contents($data_path, json_encode($data, JSON_PRETTY_PRINT));
@@ -158,9 +162,9 @@ foreach ($period as $date) {
 
 $data = json_decode(file_get_contents($app .'/logs/data.json'), true);
 
-// get locales list, this can vary when we add or drop a locale
+// Get locales list, this can vary when we add or drop a locale
 $locales = [];
-foreach($data as $date => $serie) {
+foreach ($data as $date => $serie) {
     if (is_array($serie)) {
         $locales = array_merge($locales, array_keys($serie));
     }
@@ -170,13 +174,13 @@ sort($locales);
 
 $all = 'date,' . implode(',', $locales) . "\n";
 
-foreach($data as $date => $serie) {
+foreach ($data as $date => $serie) {
     $loop_time = new DateTime($date);
     if ($loop_time < $begin || $loop_time > $end) {
         continue;
     }
     $all .= $date . ',';
-    foreach($locales as $this_locale) {
+    foreach ($locales as $this_locale) {
         if (! is_array($serie)) {
             continue;
         }
@@ -191,9 +195,10 @@ foreach($data as $date => $serie) {
 
 file_put_contents($app .'/logs/data.csv', $all);
 
-foreach($locales as $this_locale) {
+foreach ($locales as $this_locale) {
     $csv = 'date,' . $this_locale . "\n";
-    foreach($data as $date => $serie) {
+
+    foreach ($data as $date => $serie) {
         if (! is_array($serie)) {
             continue;
         }
@@ -209,6 +214,7 @@ foreach($locales as $this_locale) {
             $all .= $date . ",0\n";
         }
     }
+
     file_put_contents($app .'/logs/' . $this_locale . '.csv', $csv);
 }
 

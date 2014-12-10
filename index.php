@@ -1,5 +1,5 @@
 <?php
-$locale = isset($_GET['locale'])? $_GET['locale'] : 'data';
+$locale = isset($_GET['locale']) ? $_GET['locale'] : 'data';
 $locale = htmlspecialchars(strip_tags($locale));
 $label = $locale == 'data' ? 'All locales' : $locale;
 ?>
