@@ -71,6 +71,7 @@ if (! is_dir($git)) {
     exec('git clone https://github.com/mozilla-l10n/langchecker');
 } elseif ($update_repos) {
     chdir($git);
+    exec('git checkout master');
     exec('git pull origin master');
 }
 
