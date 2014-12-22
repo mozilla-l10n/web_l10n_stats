@@ -44,7 +44,7 @@ $git        = $repos . '/langchecker';
 $data_path  = $app . '/logs/data.json';
 
 // Create our data structure
-$update_repos = false;
+$update_repos = true;
 
 if (! is_dir($svn_mozorg)) {
     chdir($repos);
