@@ -51,18 +51,12 @@ if (! is_dir($svn_mozorg)) {
     print "Checking our mozilla.org svn repository\n";
     mkdir($repos . '/mozillaorg/');
     exec('svn co https://svn.mozilla.org/projects/mozilla.com/trunk/locales mozillaorg/locales');
-} elseif ($update_repos) {
-    chdir($svn_mozorg);
-    exec('svn up');
 }
 
 if (! is_dir($svn_misc)) {
     chdir($repos);
     print "Checking our l10n-misc svn repository\n";
     exec('svn co https://svn.mozilla.org/projects/l10n-misc/trunk l10n-misc');
-} elseif ($update_repos) {
-    chdir($svn_misc);
-    exec('svn up');
 }
 
 if (! is_dir($git)) {
@@ -71,11 +65,12 @@ if (! is_dir($git)) {
     exec('git clone https://github.com/mozilla-l10n/langchecker');
 } elseif ($update_repos) {
     chdir($git);
+    print "Updating the Langchecker git repository\n";
     exec('git checkout master');
     exec('git pull origin master');
 }
 
-if (! is_file($app . '/composer.phar')) {
+if (! is_file($git . '/composer.phar')) {
     print "Installing composer.\n";
     exec("curl -sS https://getcomposer.org/installer | php");
 }
@@ -104,7 +99,7 @@ $end->add(DateInterval::createFromDateString('yesterday'));
 $interval = DateInterval::createFromDateString('1 day');
 $period = new DatePeriod($begin, $interval, $end);
 
-$data = json_decode(file_get_contents($app .'/logs/data.json'), true);
+$data = json_decode(file_get_contents($data_path), true);
 
 chdir($git);
 print "Launching PHP dev server in the background inside the Langchecker instance.\n";
@@ -124,18 +119,21 @@ foreach ($period as $date) {
 
     if (! is_dir($git . '/vendor') && is_file($git . '/composer.json')) {
         print "Installing composer dependencies.\n";
-        exec("php $app/composer.phar install > /dev/null 2>&1");
+        exec("php $git/composer.phar install > /dev/null 2>&1");
+    }
+
+    if (! isset($composer_sig) && is_file($git . '/composer.json')) {
         $composer_sig = sha1(file_get_contents($git . '/composer.json'));
     }
 
     if (isset($composer_sig)) {
         if (sha1(file_get_contents($git . '/composer.json')) != $composer_sig) {
             print "Updating composer dependencies.\n";
-            exec("php $app/composer.phar > /dev/null 2>&1");
+            exec("php $git/composer.phar > /dev/null 2>&1");
             $composer_sig = sha1(file_get_contents($git . '/composer.json'));
         } else {
-            print "Updating autoloader.\n";
-            exec("php $app/composer.phar dump-autoload > /dev/null 2>&1");
+            // Updating autoloader
+            exec("php $git/composer.phar dump-autoload > /dev/null 2>&1");
         }
     }
 
@@ -161,7 +159,7 @@ foreach ($period as $date) {
     file_put_contents($data_path, json_encode($data, JSON_PRETTY_PRINT));
 }
 
-$data = json_decode(file_get_contents($app .'/logs/data.json'), true);
+$data = json_decode(file_get_contents($data_path), true);
 
 // Get locales list, this can vary when we add or drop a locale
 $locales = [];
