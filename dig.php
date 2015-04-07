@@ -87,14 +87,24 @@ if (! file_exists($data_path)) {
     file_put_contents($data_path, json_encode([]));
 }
 
-// Define our date interval
-// 2013-10-12 is when I added the json API to the countstring view in Langchecker
-// 2014-11-02 is when all web parts were included in the json, not just mozilla.org
-$begin = new DateTime('2014-11-02');
 
-// We define the end date as being yesterday because we don't want to process partial days
-$end = new DateTime();
-$end->add(DateInterval::createFromDateString('yesterday'));
+// We can force the recalculation of a single date, ex: dig.php 2015-01-29
+if (isset($argv[1])) {
+    $date_override = true;
+    $begin = new DateTime($argv[1]);
+    $end = new DateTime($argv[1] . " + 1 day");
+} else {
+    $date_override = false;
+    // Define our date interval
+    // 2013-10-12 is when I added the json API to the countstring view in Langchecker
+    // 2014-11-02 is when all web parts were included in the json, not just mozilla.org
+    $begin = new DateTime('2014-11-02');
+
+    // We define the end date as being yesterday because we don't want to process partial days
+    $end = new DateTime();
+    $end->add(DateInterval::createFromDateString('yesterday'));
+}
+
 
 $interval = DateInterval::createFromDateString('1 day');
 $period = new DatePeriod($begin, $interval, $end);
@@ -107,7 +117,7 @@ exec('php -S localhost:8082 > /dev/null 2>&1 &');
 
 foreach ($period as $date) {
     $day = $date->format('Y-m-d');
-    if (array_key_exists($day, $data)) {
+    if (array_key_exists($day, $data) && ! $date_override) {
         continue;
     }
 
