@@ -124,9 +124,12 @@ foreach ($period as $date) {
 
     print $day . "\n";
 
+    // We switched reference locale from en-GB to en-US on 2015-01-15
+    $vcs_day = ($day == '2015-01-15') ? $day . ' 12:00:00' : $day;
+
     // Update repositories
     chdir($git);
-    exec("git checkout `git rev-list -n 1 --before=\"${day}\" master`");
+    exec("git checkout `git rev-list -n 1 --before=\"${vcs_day}\" master`");
 
     if (! is_dir($git . '/vendor') && is_file($git . '/composer.json')) {
         print "Installing composer dependencies.\n";
@@ -149,9 +152,9 @@ foreach ($period as $date) {
     }
 
     chdir($svn_mozorg);
-    exec('svn up -r{' . $day . '}');
+    exec('svn up -r{"' . $vcs_day . '"}');
     chdir($svn_misc);
-    exec('svn up -r{' . $day . '}');
+    exec('svn up -r{"' . $vcs_day . '"}');
 
     // Analyse data
     chdir($app);
