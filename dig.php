@@ -8,7 +8,7 @@ date_default_timezone_set('Europe/Paris');
 mb_internal_encoding('UTF-8');
 
 // Manage CTRL+C and other script interruptions
-declare (ticks = 1); // how often to check for signals
+declare(ticks = 1); // how often to check for signals
 // This function will process sent signals
 function sig_handler($signo)
 {
@@ -31,17 +31,17 @@ function sig_handler($signo)
 }
 
 // These define the signal handling
-pcntl_signal(SIGTERM, "sig_handler");
-pcntl_signal(SIGHUP,  "sig_handler");
-pcntl_signal(SIGINT, "sig_handler");
+pcntl_signal(SIGTERM, 'sig_handler');
+pcntl_signal(SIGHUP,  'sig_handler');
+pcntl_signal(SIGINT,  'sig_handler');
 
 // Repositories to loop for date in
 $app        = realpath(__DIR__);
-$repos      = $app . '/repos';
+$repos      = $app   . '/repos';
 $svn_mozorg = $repos . '/mozillaorg/locales';
 $svn_misc   = $repos . '/l10n-misc';
 $git        = $repos . '/langchecker';
-$data_path  = $app . '/logs/data.json';
+$data_path  = $app   . '/logs/data.json';
 
 // Create our data structure
 $update_repos = true;
@@ -94,7 +94,7 @@ if (! file_exists($data_path)) {
 if (isset($argv[1])) {
     $date_override = true;
     $begin = new DateTime($argv[1]);
-    $end = new DateTime($argv[1] . " + 1 day");
+    $end   = new DateTime($argv[1] . ' + 1 day');
 } else {
     $date_override = false;
     // Define our date interval
@@ -106,7 +106,6 @@ if (isset($argv[1])) {
     $end = new DateTime();
     $end->add(DateInterval::createFromDateString('yesterday'));
 }
-
 
 $interval = DateInterval::createFromDateString('1 day');
 $period = new DatePeriod($begin, $interval, $end);
@@ -187,9 +186,7 @@ $all = 'date,' . implode(',', $locales) . "\n";
 
 foreach ($data as $date => $serie) {
     $loop_time = new DateTime($date);
-    if ($loop_time < $begin || $loop_time > $end) {
-        continue;
-    }
+
     $all .= $date . ',';
     foreach ($locales as $this_locale) {
         if (! is_array($serie)) {
@@ -214,15 +211,10 @@ foreach ($locales as $this_locale) {
             continue;
         }
 
-        $loop_time = new DateTime($date);
-        if ($loop_time < $begin || $loop_time > $end) {
-            continue;
-        }
-
         if (array_key_exists($this_locale, $serie)) {
             $csv .= $date . ',' . $serie[$this_locale] . "\n";
         } else {
-            $all .= $date . ",0\n";
+            $csv .= $date . ",0\n";
         }
     }
 
