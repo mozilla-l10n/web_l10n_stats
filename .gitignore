@@ -1,5 +1,6 @@
 composer.phar
 logs/*.csv
+logs/*.json
 repos/langchecker
 repos/mozillaorg
 repos/l10n-misc
