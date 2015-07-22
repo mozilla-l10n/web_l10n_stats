@@ -10,16 +10,10 @@ $repo8  = __DIR__ . '/../../l10n-misc/add-ons/';
 $repo9  = __DIR__ . '/../../l10n-misc/firefoxupdater/';
 $repo10 = __DIR__ . '/../../l10n-misc/firefoxos-marketing/';
 $repo11 = __DIR__ . '/../../l10n-misc/firefoxtiles/';
-$repo12 = __DIR__ . '/../../l10n-misc/googleplay/';
+$repo12 = __DIR__ . '/../../appstores/';
 $repo6  = ''; // let's ignore this one, marginal
 
 // Path to local clone of Locamotion's repo
 $locamotion_repo  = ''; // no need for stats
 
 include __DIR__ . '/locales.inc.php';
-
-if (isset($mozillaorg)) {
-    $mozilla = array_diff($mozillaorg, ['es']);
-}
-
-$mozillaorg = array_diff($mozilla, ['es', 'lg', 'nn-NO']);

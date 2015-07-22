@@ -37,11 +37,12 @@ pcntl_signal(SIGINT,  'sig_handler');
 
 // Repositories to loop for date in
 $app        = realpath(__DIR__);
+$data_path  = $app   . '/logs/data.json';
 $repos      = $app   . '/repos';
 $svn_mozorg = $repos . '/mozillaorg/locales';
 $svn_misc   = $repos . '/l10n-misc';
 $git        = $repos . '/langchecker';
-$data_path  = $app   . '/logs/data.json';
+$git_stores = $repos . '/appstores';
 
 // Create our data structure
 $update_repos = true;
@@ -70,6 +71,17 @@ if (! is_dir($git)) {
     exec('git pull origin master');
 }
 
+if (! is_dir($git_stores)) {
+    chdir($repos);
+    print "Cloning the AppStores git repository\n";
+    exec('git clone https://github.com/mozilla-l10n/appstores');
+} elseif ($update_repos) {
+    chdir($git);
+    print "Updating the AppStores git repository\n";
+    exec('git checkout master');
+    exec('git pull origin master');
+}
+
 if (! is_file($git . '/composer.phar')) {
     print "Installing composer.\n";
     exec("curl -sS https://getcomposer.org/installer | php");
@@ -77,9 +89,7 @@ if (! is_file($git . '/composer.phar')) {
     exec("php $git/composer.phar self-update");
 }
 
-if (is_dir($git) && ! file_exists($git .'/config/settings.inc.php')) {
-    copy($repos . '/settings.inc.php', $git .'/config/settings.inc.php');
-}
+copy($repos . '/settings.inc.php', $git .'/config/settings.inc.php');
 
 if (! is_dir($app . '/logs/')) {
     mkdir($app . '/logs/');
@@ -125,7 +135,7 @@ foreach ($period as $date) {
     print $day . "\n";
 
     // We switched reference locale from en-GB to en-US on 2015-01-15
-    $vcs_day = ($day == '2015-01-15') ? $day . ' 12:00:00' : $day;
+    $vcs_day = ($day == '2015-01-15') ? $day . ' 12:00:00' : $day . ' 00:00:00';
 
     // Update repositories
     chdir($git);
@@ -155,6 +165,8 @@ foreach ($period as $date) {
     exec('svn up -r{"' . $vcs_day . '"}');
     chdir($svn_misc);
     exec('svn up -r{"' . $vcs_day . '"}');
+    chdir($git_stores);
+    exec("git checkout `git rev-list -n 1 --before=\"${vcs_day}\" master`");
 
     // Analyse data
     chdir($app);
