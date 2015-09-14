@@ -76,7 +76,7 @@ if (! is_dir($git_stores)) {
     print "Cloning the AppStores git repository\n";
     exec('git clone https://github.com/mozilla-l10n/appstores');
 } elseif ($update_repos) {
-    chdir($git);
+    chdir($git_stores);
     print "Updating the AppStores git repository\n";
     exec('git checkout master');
     exec('git pull origin master');
