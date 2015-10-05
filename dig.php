@@ -12,7 +12,7 @@ declare(ticks = 1); // how often to check for signals
 // This function will process sent signals
 function sig_handler($signo)
 {
-    global $svn_mozorg;
+    global $git_mozorg;
     global $svn_misc;
     if ($signo == SIGTERM || $signo == SIGHUP || $signo == SIGINT) {
         if ($signo != 15) {
@@ -21,12 +21,10 @@ function sig_handler($signo)
             print "Operations finished\n";
         }
         // Cleanup
-        chdir($svn_mozorg);
-        exec('svn cleanup');
         chdir($svn_misc);
         exec('svn cleanup');
         exec('pkill php');
-        exit();
+        exit;
     }
 }
 
@@ -36,22 +34,22 @@ pcntl_signal(SIGHUP,  'sig_handler');
 pcntl_signal(SIGINT,  'sig_handler');
 
 // Repositories to loop for date in
-$app        = realpath(__DIR__);
-$data_path  = $app   . '/logs/data.json';
-$repos      = $app   . '/repos';
-$svn_mozorg = $repos . '/mozillaorg/locales';
-$svn_misc   = $repos . '/l10n-misc';
-$git        = $repos . '/langchecker';
-$git_stores = $repos . '/appstores';
+$app             = realpath(__DIR__);
+$data_path       = $app   . '/logs/data.json';
+$repos           = $app   . '/repos';
+$git_mozorg      = $repos . '/mozillaorg/locales/';
+$svn_misc        = $repos . '/l10n-misc';
+$git_langchecker = $repos . '/langchecker';
+$git_stores      = $repos . '/appstores';
 
 // Create our data structure
 $update_repos = true;
 
-if (! is_dir($svn_mozorg)) {
-    chdir($repos);
-    print "Checking our mozilla.org svn repository\n";
+if (! is_dir($git_mozorg)) {
+    print "Checking our mozilla.org git repository\n";
     mkdir($repos . '/mozillaorg/');
-    exec('svn co https://svn.mozilla.org/projects/mozilla.com/trunk/locales mozillaorg/locales');
+    chdir($repos . '/mozillaorg/');
+    exec('git clone https://github.com/mozilla-l10n/www.mozilla.org/ locales');
 }
 
 if (! is_dir($svn_misc)) {
@@ -60,12 +58,12 @@ if (! is_dir($svn_misc)) {
     exec('svn co https://svn.mozilla.org/projects/l10n-misc/trunk l10n-misc');
 }
 
-if (! is_dir($git)) {
+if (! is_dir($git_langchecker)) {
     chdir($repos);
     print "Cloning the Langchecker git repository\n";
     exec('git clone https://github.com/mozilla-l10n/langchecker');
 } elseif ($update_repos) {
-    chdir($git);
+    chdir($git_langchecker);
     print "Updating the Langchecker git repository\n";
     exec('git checkout master');
     exec('git pull origin master');
@@ -82,14 +80,16 @@ if (! is_dir($git_stores)) {
     exec('git pull origin master');
 }
 
-if (! is_file($git . '/composer.phar')) {
+if (! is_file($git_langchecker . '/composer.phar')) {
+    chdir($git_langchecker);
     print "Installing composer.\n";
-    exec("curl -sS https://getcomposer.org/installer | php");
+    exec('curl -sS https://getcomposer.org/installer | php', $output, $err);
 } else {
-    exec("php $git/composer.phar self-update");
+    print "Self-updating composer.\n";
+    exec("php $git_langchecker/composer.phar self-update");
 }
 
-copy($repos . '/settings.inc.php', $git .'/config/settings.inc.php');
+copy($repos . '/settings.inc.php', $git_langchecker .'/config/settings.inc.php');
 
 if (! is_dir($app . '/logs/')) {
     mkdir($app . '/logs/');
@@ -122,7 +122,7 @@ $period = new DatePeriod($begin, $interval, $end);
 
 $data = json_decode(file_get_contents($data_path), true);
 
-chdir($git);
+chdir($git_langchecker);
 print "Launching PHP dev server in the background inside the Langchecker instance.\n";
 exec('php -S localhost:8082 > /dev/null 2>&1 &');
 
@@ -138,31 +138,31 @@ foreach ($period as $date) {
     $vcs_day = ($day == '2015-01-15') ? $day . ' 12:00:00' : $day . ' 00:00:00';
 
     // Update repositories
-    chdir($git);
+    chdir($git_langchecker);
     exec("git checkout `git rev-list -n 1 --before=\"${vcs_day}\" master`");
 
-    if (! is_dir($git . '/vendor') && is_file($git . '/composer.json')) {
+    if (! is_dir($git_langchecker . '/vendor') && is_file($git_langchecker . '/composer.json')) {
         print "Installing composer dependencies.\n";
-        exec("php $git/composer.phar install");
+        exec("php {$git_langchecker}/composer.phar install");
     }
 
-    if (! isset($composer_sig) && is_file($git . '/composer.json')) {
-        $composer_sig = sha1(file_get_contents($git . '/composer.json'));
+    if (! isset($composer_sig) && is_file($git_langchecker . '/composer.json')) {
+        $composer_sig = sha1(file_get_contents($git_langchecker . '/composer.json'));
     }
 
     if (isset($composer_sig)) {
-        if (sha1(file_get_contents($git . '/composer.json')) != $composer_sig) {
+        if (sha1(file_get_contents($git_langchecker . '/composer.json')) != $composer_sig) {
             print "Updating composer dependencies.\n";
-            exec("php $git/composer.phar");
-            $composer_sig = sha1(file_get_contents($git . '/composer.json'));
+            exec("php {$git_langchecker}/composer.phar");
+            $composer_sig = sha1(file_get_contents($git_langchecker . '/composer.json'));
         } else {
             // Updating autoloader
-            exec("php $git/composer.phar dump-autoload");
+            exec("php {$git_langchecker}/composer.phar dump-autoload");
         }
     }
 
-    chdir($svn_mozorg);
-    exec('svn up -r{"' . $vcs_day . '"}');
+    chdir($git_mozorg);
+    exec("git checkout `git rev-list -n 1 --before=\"${vcs_day}\" master`");
     chdir($svn_misc);
     exec('svn up -r{"' . $vcs_day . '"}');
     chdir($git_stores);
