@@ -50,6 +50,11 @@ if (! is_dir($git_mozorg)) {
     mkdir($repos . '/mozillaorg/');
     chdir($repos . '/mozillaorg/');
     exec('git clone https://github.com/mozilla-l10n/www.mozilla.org/ locales');
+} elseif ($update_repos) {
+    chdir($git_mozorg);
+    print "Updating the mozilla.org git repository\n";
+    exec('git checkout master');
+    exec('git pull origin master');
 }
 
 if (! is_dir($svn_misc)) {
