@@ -37,7 +37,7 @@ pcntl_signal(SIGINT,  'sig_handler');
 $app             = realpath(__DIR__);
 $data_path       = $app   . '/logs/data.json';
 $repos           = $app   . '/repos';
-$git_mozorg      = $repos . '/mozillaorg/locales/';
+$git_mozorg      = $repos . '/mozillaorg/';
 $svn_misc        = $repos . '/l10n-misc';
 $git_langchecker = $repos . '/langchecker';
 $git_stores      = $repos . '/appstores';
@@ -48,8 +48,8 @@ $update_repos = true;
 if (! is_dir($git_mozorg)) {
     print "Checking our mozilla.org git repository\n";
     mkdir($repos . '/mozillaorg/');
-    chdir($repos . '/mozillaorg/');
-    exec('git clone https://github.com/mozilla-l10n/www.mozilla.org/ locales');
+    chdir($repos);
+    exec('git clone https://github.com/mozilla-l10n/www.mozilla.org/ mozillaorg');
 } elseif ($update_repos) {
     chdir($git_mozorg);
     print "Updating the mozilla.org git repository\n";
@@ -94,7 +94,18 @@ if (! is_file($git_langchecker . '/composer.phar')) {
     exec("php $git_langchecker/composer.phar self-update");
 }
 
-copy($repos . '/settings.inc.php', $git_langchecker .'/config/settings.inc.php');
+
+
+// On 2015-10-14 we reorganized the langchecker app file structure
+if (is_dir($git_langchecker .'/config/')) {
+    copy($repos . '/settings.inc.php', $git_langchecker .'/config/settings.inc.php');
+}
+
+// On 2015-10-14 we reorganized the langchecker app file structure
+if (is_dir($git_langchecker .'/app/config/')) {
+    copy($repos . '/settings2015-10-13.inc.php', $git_langchecker .'/app/config/settings.inc.php');
+}
+
 
 if (! is_dir($app . '/logs/')) {
     mkdir($app . '/logs/');
