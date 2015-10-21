@@ -4,6 +4,30 @@ if (php_sapi_name() != 'cli') {
     die('This command can only be used in CLI mode.');
 }
 
+function startDevelopmentServer($pidfile)
+{
+    $cmd = 'php -S localhost:8082';
+    $outputfile = '/dev/null';
+    echo 'location: ' . getcwd() . "\n";
+    shell_exec(sprintf("%s > %s 2>&1 & echo $! >> %s", $cmd, $outputfile, $pidfile));
+    sleep(1);
+}
+
+function killDevelopmentServer($pidfile)
+{
+    if (file_exists($pidfile)) {
+        $pids = file($pidfile);
+        foreach ($pids as $pid) {
+            shell_exec('kill -9 ' . $pid);
+        }
+        if (unlink($pidfile)) {
+            echo "Successfully deleted " . $pidfile;
+        } else {
+            echo "Problem deleting " . $pidfile;
+        }
+    }
+}
+
 date_default_timezone_set('Europe/Paris');
 mb_internal_encoding('UTF-8');
 
@@ -35,6 +59,7 @@ pcntl_signal(SIGINT,  'sig_handler');
 
 // Repositories to loop for date in
 $app             = realpath(__DIR__);
+$pid_file        = $app . '/pidfile.txt';
 $data_path       = $app   . '/logs/data.json';
 $repos           = $app   . '/repos';
 $git_mozorg      = $repos . '/mozillaorg/';
@@ -94,19 +119,6 @@ if (! is_file($git_langchecker . '/composer.phar')) {
     exec("php $git_langchecker/composer.phar self-update");
 }
 
-
-
-// On 2015-10-14 we reorganized the langchecker app file structure
-if (is_dir($git_langchecker .'/config/')) {
-    copy($repos . '/settings.inc.php', $git_langchecker .'/config/settings.inc.php');
-}
-
-// On 2015-10-14 we reorganized the langchecker app file structure
-if (is_dir($git_langchecker .'/app/config/')) {
-    copy($repos . '/settings2015-10-13.inc.php', $git_langchecker .'/app/config/settings.inc.php');
-}
-
-
 if (! is_dir($app . '/logs/')) {
     mkdir($app . '/logs/');
 }
@@ -114,7 +126,6 @@ if (! is_dir($app . '/logs/')) {
 if (! file_exists($data_path)) {
     file_put_contents($data_path, json_encode([]));
 }
-
 
 // We can force the recalculation of a single date, ex: dig.php 2015-01-29
 if (isset($argv[1])) {
@@ -138,17 +149,15 @@ $period = new DatePeriod($begin, $interval, $end);
 
 $data = json_decode(file_get_contents($data_path), true);
 
-chdir($git_langchecker);
 print "Launching PHP dev server in the background inside the Langchecker instance.\n";
-exec('php -S localhost:8082 > /dev/null 2>&1 &');
 
+chdir($git_langchecker);
+startDevelopmentServer($pid_file);
 foreach ($period as $date) {
     $day = $date->format('Y-m-d');
     if (array_key_exists($day, $data) && ! $date_override) {
         continue;
     }
-
-    print $day . "\n";
 
     // We switched reference locale from en-GB to en-US on 2015-01-15
     $vcs_day = ($day == '2015-01-15') ? $day . ' 12:00:00' : $day . ' 00:00:00';
@@ -156,6 +165,15 @@ foreach ($period as $date) {
     // Update repositories
     chdir($git_langchecker);
     exec("git checkout `git rev-list -n 1 --before=\"${vcs_day}\" master`");
+    // On 2015-10-14 we reorganized the langchecker app file structure
+    if (is_dir($git_langchecker .'/config/')) {
+        copy($repos . '/settings.inc.php', $git_langchecker .'/config/settings.inc.php');
+    }
+
+    // On 2015-10-14 we reorganized the langchecker app file structure
+    if (is_dir($git_langchecker .'/app/config/')) {
+        copy($repos . '/settings2015-10-13.inc.php', $git_langchecker .'/app/config/settings.inc.php');
+    }
 
     if (! is_dir($git_langchecker . '/vendor') && is_file($git_langchecker . '/composer.json')) {
         print "Installing composer dependencies.\n";
@@ -184,6 +202,20 @@ foreach ($period as $date) {
     chdir($git_stores);
     exec("git checkout `git rev-list -n 1 --before=\"${vcs_day}\" master`");
 
+    // from  2015-10-10 to  2015-10-14 we reorganized the langchecker app file structure
+    if (is_dir($git_langchecker . '/app/classes/') && is_file($git_langchecker . '/web/index.php')) {
+        chdir($git_langchecker . '/web/');
+        if (! $reorg) {
+            killDevelopmentServer($pid_file);
+            startDevelopmentServer($pid_file);
+            $reorg = true;
+        }
+    } else {
+        $reorg = false;
+        chdir($git_langchecker);
+    }
+
+    print $day . "\n";
     // Analyse data
     chdir($app);
     $json_day = json_decode(file_get_contents('http://localhost:8082/?action=count&json'), true);
@@ -200,6 +232,8 @@ foreach ($period as $date) {
     ksort($data);
     file_put_contents($data_path, json_encode($data, JSON_PRETTY_PRINT));
 }
+
+killDevelopmentServer($pid_file);
 
 $data = json_decode(file_get_contents($data_path), true);
 
@@ -252,5 +286,5 @@ foreach ($locales as $this_locale) {
     file_put_contents($app .'/logs/' . $this_locale . '.csv', $csv);
 }
 
-// Kill the php process we launched in the background
+// Kill any PHP process we launched in the background
 exec('pkill php');
