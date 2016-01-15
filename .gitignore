@@ -1,7 +1,4 @@
 composer.phar
+errors.txt
 logs/*.csv
 logs/live.json
-repos/langchecker
-repos/appstores
-repos/mozillaorg
-repos/l10n-misc
