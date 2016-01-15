@@ -1,6 +1,6 @@
 composer.phar
 logs/*.csv
-logs/*.json
+logs/live.json
 repos/langchecker
 repos/appstores
 repos/mozillaorg
