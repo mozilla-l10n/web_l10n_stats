@@ -8,7 +8,7 @@ date_default_timezone_set('Europe/Paris');
 mb_internal_encoding('UTF-8');
 
 // Declare paths and time
-$app               = realpath(__DIR__);
+$app               = realpath(__DIR__ . '/../');
 $archive_data_path = $app . '/archive/data.json';
 $live_data_path    = $app . '/logs/live.json';
 $today             = new DateTime('now');
@@ -20,7 +20,7 @@ if (! file_exists($live_data_path)) {
 }
 
 // Get today's data
-$json_day = json_decode(file_get_contents('https://l10n.mozilla-community.org/~pascalc/langchecker/?action=count&json'), true);
+$json_day = json_decode(file_get_contents('https://l10n.mozilla-community.org/langchecker/?action=count&json'), true);
 
 if (is_array($json_day)) {
     ksort($json_day);
