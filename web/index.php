@@ -8,7 +8,7 @@ $label = $locale == 'data' ? 'All locales' : $locale;
 <head>
 <meta charser="utf-8">
 <title>Status of Key Web Parts Over Time</title>
-<script src="dygraph-combined.js"></script>
+<script src="js/dygraph-combined.js"></script>
     <style type='text/css'>
       #graphdiv .dygraph-legend > span { display: none; }
       #graphdiv .dygraph-legend > span.highlight { display: inline; }
@@ -19,7 +19,7 @@ $label = $locale == 'data' ? 'All locales' : $locale;
     <script type="text/javascript">
     g2 = new Dygraph(
         document.getElementById("graphdiv"),
-        "logs/<?=$locale?>.csv", // path to CSV file
+        "csv/<?=$locale?>.csv", // path to CSV file
         {
             gridLineColor: 'lightgray',
             highlightCircleSize: 5,
