@@ -9,8 +9,8 @@ mb_internal_encoding('UTF-8');
 
 // Declare paths and time
 $app               = realpath(__DIR__ . '/../');
-$archive_data_path = $app . '/archive/data.json';
-$live_data_path    = $app . '/logs/live.json';
+$archive_data_path = $app . '/data/archive.json';
+$live_data_path    = $app . '/data/live.json';
 $today             = new DateTime('now');
 
 if (! file_exists($live_data_path)) {
@@ -67,7 +67,7 @@ foreach ($all_data as $date => $series) {
     }
 }
 
-file_put_contents($app . '/logs/data.csv', $all);
+file_put_contents($app . '/web/csv/data.csv', $all);
 
 // Generate .csv file for each locale
 foreach ($locales as $this_locale) {
@@ -85,5 +85,5 @@ foreach ($locales as $this_locale) {
         }
     }
 
-    file_put_contents($app . '/logs/' . $this_locale . '.csv', $csv);
+    file_put_contents($app . '/web/csv/' . $this_locale . '.csv', $csv);
 }

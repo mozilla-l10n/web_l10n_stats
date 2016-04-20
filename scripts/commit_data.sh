@@ -7,9 +7,9 @@ cd $MAIN_FOLDER/..
 git pull
 
 DAY=$(date +"%Y%m%d")
-# Remove previous file current.zip, create new one and commit it
-rm -f archive/current.zip
-zip -j archive/current.zip logs/live.json
-git add archive/current.zip
+# Remove previous backup, create new one and commit it
+rm -f data/live.zip
+zip -j data/live.zip data/live.json
+git add data/live.zip
 git commit -m "Update data ($DAY)"
 git push

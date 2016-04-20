@@ -1,3 +1,2 @@
-logs/errors.txt
-logs/*.csv
-logs/live.json
+data/live.json
+web/csv/*.csv
